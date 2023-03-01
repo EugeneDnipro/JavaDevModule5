@@ -3,6 +3,7 @@ package org.example;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,10 +13,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class DatabaseQueryService {
-    private static final String FIND_MAX_PROJECTS_CLIENT_FILE = "sql/find_max_projects_client.sql";
+//    private static final String FIND_MAX_PROJECTS_CLIENT_FILE = "sql/find_max_projects_client.sql";
     private static final String FIND_MAX_SALARY_WORKER_FILE = "sql/find_max_salary_worker.sql";
     private static final String FIND_LONGEST_PROJECT_FILE = "sql/find_longest_project.sql";
-    private static final String FIND_YOUNGEST_ELDEST_WORKERS_FILE = "sql/find_youngest_eldest_workers.sql";
     private static final String PRINT_PROJECT_PRICE_FILE = "sql/print_project_prices.sql";
 
     private static String getQuery(String pathToFile) {
@@ -42,9 +42,25 @@ public class DatabaseQueryService {
     List<MaxProjectCountClientDto> findMaxProjectsClient() {
         ResultSet rs;
         List<MaxProjectCountClientDto> selectedMaxProjectCountClient = new ArrayList<>();
+        String sqlTemplate = "SELECT *\n" +
+                "    FROM (SELECT name, count(name) AS project_count\n" +
+                "        FROM (SELECT name, project.client_id\n" +
+                "            FROM client\n" +
+                "            JOIN project\n" +
+                "            ON client.id = project.client_id)\n" +
+                "        GROUP BY name)\n" +
+                "    WHERE project_count = (SELECT MAX(project_count)\n" +
+                "        FROM (SELECT name, count(name) AS project_count\n" +
+                "            FROM (SELECT name, project.client_id\n" +
+                "                FROM client\n" +
+                "                JOIN project\n" +
+                "                ON client.id = project.client_id)\n" +
+                "            GROUP BY name));";
+        try (PreparedStatement queryStatement = Database.getInstance().getConnection().prepareStatement(sqlTemplate)) {
 
-        try (Statement stmt = Database.getInstance().getConnection().createStatement()) {
-            rs = stmt.executeQuery(getQuery(FIND_MAX_PROJECTS_CLIENT_FILE));
+//            queryStatement.setString(1, "name");
+
+            rs = queryStatement.executeQuery();
             while (rs.next()) {
                 selectedMaxProjectCountClient.add(new MaxProjectCountClientDto(rs.getString("name"), rs.getInt("project_count")));
             }
@@ -87,9 +103,21 @@ public class DatabaseQueryService {
     List<YoungestEldestWorkersDto> findYoungestEldestWorkers() {
         ResultSet rs;
         List<YoungestEldestWorkersDto> selectedYoungestEldestWorkers = new ArrayList<>();
+        String sqlTemplate = "SELECT\n" +
+                " CASE WHEN birthday=(SELECT MAX(birthday) FROM worker) THEN ?\n" +
+                "     WHEN birthday=(SELECT MIN(birthday) FROM worker) THEN ?\n" +
+                " END AS type, name, birthday\n" +
+                " FROM worker WHERE (CASE WHEN birthday=(SELECT MAX(birthday) FROM worker) THEN ?\n" +
+                "                        WHEN birthday=(SELECT MIN(birthday) FROM worker) THEN ?\n" +
+                "                   END) != 'null';";
+        try (PreparedStatement queryStatement = Database.getInstance().getConnection().prepareStatement(sqlTemplate)) {
 
-        try (Statement stmt = Database.getInstance().getConnection().createStatement()) {
-            rs = stmt.executeQuery(getQuery(FIND_YOUNGEST_ELDEST_WORKERS_FILE));
+            queryStatement.setString(1, "YOUNGEST");
+            queryStatement.setString(2, "ELDEST");
+            queryStatement.setString(3, "YOUNGEST");
+            queryStatement.setString(4, "ELDEST");
+
+            rs = queryStatement.executeQuery();
             while (rs.next()) {
                 selectedYoungestEldestWorkers.add(new YoungestEldestWorkersDto(rs.getString("type"), rs.getString("name"), LocalDate.parse(rs.getString("birthday"))));
             }
