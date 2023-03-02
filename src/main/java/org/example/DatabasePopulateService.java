@@ -1,9 +1,41 @@
 package org.example;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class DatabasePopulateService {
+
+    private static String getWorkerData(String pathToFile) {
+        String stringQuery = null;
+        List<String> parsedWorkerData = new ArrayList<>();
+        List<WorkerDataDto> workerLines= new ArrayList<>();
+        int i = 0;
+        try (InputStream fis = new FileInputStream(pathToFile);
+             Scanner scanner = new Scanner(fis)) {
+            StringBuilder query = new StringBuilder();
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                parsedWorkerData = List.of(line.split(","));
+                workerLines.add(new WorkerDataDto(parsedWorkerData.get(0), parsedWorkerData.get(0), parsedWorkerData.get(0), parsedWorkerData.get(0), parsedWorkerData.get(0)))
+                if (!line.trim().isEmpty()) {
+                    query.append(line);
+                    if (line.endsWith(";")) {
+                        stringQuery = query.toString();
+                        query.setLength(0);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return stringQuery;
+    }
 
     public static void main(String[] args) {
         String workerTableSqlTemplate = "INSERT INTO worker (id, name, birthday, level, salary) VALUES (?, ?, ?, ?, ?);";
