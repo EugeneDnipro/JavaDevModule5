@@ -1,22 +1,16 @@
 package org.example;
 
 public class WorkerDataDto {
-    int id;
     String name;
     String birthday;
     String level;
     long salary;
 
-    public WorkerDataDto(int id, String name, String birthday, String level, long salary) {
-        this.id = id;
+    public WorkerDataDto(String name, String birthday, String level, long salary) {
         this.name = name;
         this.birthday = birthday;
         this.level = level;
         this.salary = salary;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public String getName() {
@@ -33,16 +27,5 @@ public class WorkerDataDto {
 
     public long getSalary() {
         return salary;
-    }
-
-    @Override
-    public String toString() {
-        return "WorkerDataDto{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", birthday='" + birthday + '\'' +
-                ", level='" + level + '\'' +
-                ", salary=" + salary +
-                '}';
     }
 }

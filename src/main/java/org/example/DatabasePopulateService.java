@@ -19,11 +19,10 @@ public class DatabasePopulateService {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 parsedWorkerData = List.of(line.split(","));
-                workerLines.add(new WorkerDataDto(Integer.parseInt(parsedWorkerData.get(0)),
+                workerLines.add(new WorkerDataDto(parsedWorkerData.get(0),
                         parsedWorkerData.get(1),
                         parsedWorkerData.get(2),
-                        parsedWorkerData.get(3),
-                        Long.parseLong(parsedWorkerData.get(4))));
+                        Long.parseLong(parsedWorkerData.get(3))));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -32,15 +31,12 @@ public class DatabasePopulateService {
     }
 
     private static List<ClientDataDto> getClientData(String pathToFile) {
-        List<String> parsedClientData;
         List<ClientDataDto> clientLines = new ArrayList<>();
         try (InputStream fis = new FileInputStream(pathToFile);
              Scanner scanner = new Scanner(fis)) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                parsedClientData = List.of(line.split(","));
-                clientLines.add(new ClientDataDto(Integer.parseInt(parsedClientData.get(0)),
-                        parsedClientData.get(1)));
+                clientLines.add(new ClientDataDto(line));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -56,10 +52,9 @@ public class DatabasePopulateService {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 parsedProjectData = List.of(line.split(","));
-                projectLines.add(new ProjectDataDto(Integer.parseInt(parsedProjectData.get(0)),
+                projectLines.add(new ProjectDataDto(parsedProjectData.get(0),
                         parsedProjectData.get(1),
-                        parsedProjectData.get(2),
-                        parsedProjectData.get(3)));
+                        parsedProjectData.get(2)));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -90,18 +85,17 @@ public class DatabasePopulateService {
         final String PROJECT_DATA_FILE = "sql/project_data.txt";
         final String PROJECT_WORKER_DATA_FILE = "sql/project_worker_data.txt";
 
-        String workerTableSqlTemplate = "INSERT INTO worker (id, name, birthday, level, salary) VALUES (?, ?, ?, ?, ?);";
-        String clientTableSqlTemplate = "INSERT INTO client (id, name) VALUES (?, ?);";
-        String projectTableSqlTemplate = "INSERT INTO project (id, client_id, start_date, finish_date) VALUES (?, ?, ?, ?);";
+        String workerTableSqlTemplate = "INSERT INTO worker (name, birthday, level, salary) VALUES (?, ?, ?, ?);";
+        String clientTableSqlTemplate = "INSERT INTO client (name) VALUES (?);";
+        String projectTableSqlTemplate = "INSERT INTO project (client_id, start_date, finish_date) VALUES (?, ?, ?);";
         String project_workerTableSqlTemplate = "INSERT INTO project_worker (project_id, worker_id) VALUES (?, ?);";
 
         try (PreparedStatement workerTableQueryStatement = Database.getInstance().getConnection().prepareStatement(workerTableSqlTemplate)) {
             for (WorkerDataDto dto : getWorkerData(WORKER_DATA_FILE)) {
-                workerTableQueryStatement.setInt(1, dto.getId());
-                workerTableQueryStatement.setString(2, dto.getName());
-                workerTableQueryStatement.setString(3, dto.getBirthday());
-                workerTableQueryStatement.setString(4, dto.getLevel());
-                workerTableQueryStatement.setLong(5, dto.getSalary());
+                workerTableQueryStatement.setString(1, dto.getName());
+                workerTableQueryStatement.setString(2, dto.getBirthday());
+                workerTableQueryStatement.setString(3, dto.getLevel());
+                workerTableQueryStatement.setLong(4, dto.getSalary());
                 workerTableQueryStatement.addBatch();
             }
             workerTableQueryStatement.executeBatch();
@@ -111,8 +105,7 @@ public class DatabasePopulateService {
 
         try (PreparedStatement clientTableQueryStatement = Database.getInstance().getConnection().prepareStatement(clientTableSqlTemplate)) {
             for (ClientDataDto dto : getClientData(CLIENT_DATA_FILE)) {
-                clientTableQueryStatement.setInt(1, dto.getId());
-                clientTableQueryStatement.setString(2, dto.getName());
+                clientTableQueryStatement.setString(1, dto.getName());
                 clientTableQueryStatement.addBatch();
             }
             clientTableQueryStatement.executeBatch();
@@ -122,10 +115,9 @@ public class DatabasePopulateService {
 
         try (PreparedStatement projectTableQueryStatement = Database.getInstance().getConnection().prepareStatement(projectTableSqlTemplate)) {
             for (ProjectDataDto dto : getProjectData(PROJECT_DATA_FILE)) {
-                projectTableQueryStatement.setInt(1, dto.getId());
-                projectTableQueryStatement.setString(2, dto.getClient_id());
-                projectTableQueryStatement.setString(3, dto.getStart_date());
-                projectTableQueryStatement.setString(4, dto.getFinish_date());
+                projectTableQueryStatement.setString(1, dto.getClient_id());
+                projectTableQueryStatement.setString(2, dto.getStart_date());
+                projectTableQueryStatement.setString(3, dto.getFinish_date());
                 projectTableQueryStatement.addBatch();
             }
             projectTableQueryStatement.executeBatch();
