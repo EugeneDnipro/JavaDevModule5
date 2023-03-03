@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class DatabaseQueryService {
-//    private static final String FIND_MAX_PROJECTS_CLIENT_FILE = "sql/find_max_projects_client.sql";
+    private static final String FIND_MAX_PROJECTS_CLIENT_FILE = "sql/find_max_projects_client.sql";
     private static final String FIND_MAX_SALARY_WORKER_FILE = "sql/find_max_salary_worker.sql";
     private static final String FIND_LONGEST_PROJECT_FILE = "sql/find_longest_project.sql";
     private static final String PRINT_PROJECT_PRICE_FILE = "sql/print_project_prices.sql";
@@ -42,25 +42,9 @@ public class DatabaseQueryService {
     List<MaxProjectCountClientDto> findMaxProjectsClient() {
         ResultSet rs;
         List<MaxProjectCountClientDto> selectedMaxProjectCountClient = new ArrayList<>();
-        String sqlTemplate = "SELECT *\n" +
-                "    FROM (SELECT name, count(name) AS project_count\n" +
-                "        FROM (SELECT name, project.client_id\n" +
-                "            FROM client\n" +
-                "            JOIN project\n" +
-                "            ON client.id = project.client_id)\n" +
-                "        GROUP BY name)\n" +
-                "    WHERE project_count = (SELECT MAX(project_count)\n" +
-                "        FROM (SELECT name, count(name) AS project_count\n" +
-                "            FROM (SELECT name, project.client_id\n" +
-                "                FROM client\n" +
-                "                JOIN project\n" +
-                "                ON client.id = project.client_id)\n" +
-                "            GROUP BY name));";
-        try (PreparedStatement queryStatement = Database.getInstance().getConnection().prepareStatement(sqlTemplate)) {
 
-//            queryStatement.setString(1, "name");
-
-            rs = queryStatement.executeQuery();
+        try (Statement stmt = Database.getInstance().getConnection().createStatement()) {
+            rs = stmt.executeQuery(getQuery(FIND_MAX_PROJECTS_CLIENT_FILE));
             while (rs.next()) {
                 selectedMaxProjectCountClient.add(new MaxProjectCountClientDto(rs.getString("name"), rs.getInt("project_count")));
             }
