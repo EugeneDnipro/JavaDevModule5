@@ -17,7 +17,7 @@ public class Database {
     }
 
     private Database() throws SQLException {
-        String dbUrl = "jdbc:h2:./module4db";
+        String dbUrl = "jdbc:h2:./module5db";
         try {
             Class.forName("org.h2.Driver");
             conn = DriverManager.getConnection(dbUrl, "sa", "");

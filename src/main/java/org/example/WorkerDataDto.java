@@ -14,4 +14,35 @@ public class WorkerDataDto {
         this.level = level;
         this.salary = salary;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getBirthday() {
+        return birthday;
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public long getSalary() {
+        return salary;
+    }
+
+    @Override
+    public String toString() {
+        return "WorkerDataDto{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", birthday='" + birthday + '\'' +
+                ", level='" + level + '\'' +
+                ", salary=" + salary +
+                '}';
+    }
 }
